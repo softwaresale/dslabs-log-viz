@@ -1,0 +1,11 @@
+[package]
+name = "log-viz"
+version = "0.1.0"
+authors = ["Charlie Sale <softwaresale01@gmail.com>"]
+license = "MIT"
+edition = "2021"
+
+[dependencies]
+crossterm = "0.27.0"
+ratatui = "0.26.0"
+"dslabs-events" = {path = "../libevents"}
