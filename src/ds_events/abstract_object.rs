@@ -3,8 +3,6 @@ pub mod parser;
 use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter, Write};
 use std::hash::{Hash, Hasher};
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use serde::ser::SerializeStruct;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum AbstractValue {
@@ -99,6 +97,20 @@ impl Display for AbstractValue {
     }
 }
 
+impl AbstractValue {
+    pub fn try_eq_raw_str<StrT: AsRef<str>>(&self, val: StrT) -> Option<bool> {
+        match self {
+            AbstractValue::Number(cmp_to) => {
+                val.as_ref().parse::<i64>()
+                    .map(|ival| ival == *cmp_to)
+                    .ok()
+            }
+            AbstractValue::Symbol(symb) => Some(symb == val.as_ref()),
+            _ => None,
+        }
+    }
+}
+
 #[derive(PartialEq, Eq, Clone)]
 pub struct AbstractObject {
     name: String,
@@ -171,16 +183,3 @@ impl Display for AbstractObject {
         f.write_char(')')
     }
 }
-
-/*
-impl Serialize for AbstractObject {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
-        let mut obj_map = serializer.serialize_struct(self.name(), self.props().len())?;
-        for (name, value) in self.props() {
-            obj_map.serialize_field(name, value)?;
-        }
-        
-        obj_map.end()
-    }
-}
- */
