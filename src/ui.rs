@@ -1,5 +1,5 @@
-mod event_item;
-mod event_list;
+
+pub mod event_list;
 
 use ratatui::{
     layout::Alignment,
@@ -10,7 +10,7 @@ use ratatui::{
 use ratatui::layout::{Constraint, Layout};
 
 use crate::app::App;
-use crate::ui::event_list::EventListWidget;
+use crate::ui::event_list::EventList;
 
 /// Renders the user interface widgets.
 pub fn render(app: &mut App, frame: &mut Frame) {
@@ -19,13 +19,11 @@ pub fn render(app: &mut App, frame: &mut Frame) {
     // - https://docs.rs/ratatui/latest/ratatui/widgets/index.html
     // - https://github.com/ratatui-org/ratatui/tree/master/examples
 
-    let starting_paragraph = Paragraph::new(format!(
-        "This is a tui template.\n\
+    let starting_paragraph = Paragraph::new(format!("DSLabs Log Insight.\n\
          Press `Esc`, `Ctrl-C` or `q` to stop running.\n\
          Press left and right to increment and decrement the counter respectively.\n\
-         Counter: {}, selected idx: {}, offset: {}",
-        app.counter, app.event_list_state.selected().unwrap_or(0), app.event_list_state.offset()
-    ))
+         Current selected event: {}", app.event_list_state.selected_event)
+    )
         .block(
             Block::bordered()
                 .title("DS Labs Log Visualizer")
@@ -47,6 +45,6 @@ pub fn render(app: &mut App, frame: &mut Frame) {
         layout[0],
     );
     
-    let event_list = EventListWidget::new(&app.events);
+    let event_list = EventList::new(&app.events);
     frame.render_stateful_widget(event_list, layout[1], &mut app.event_list_state);
 }

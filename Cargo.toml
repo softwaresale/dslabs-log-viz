@@ -1,3 +1,18 @@
+[package]
+name = "log-viz"
+version = "0.1.0"
+authors = ["Charlie Sale <softwaresale01@gmail.com>"]
+license = "MIT"
+edition = "2021"
 
-[workspace]
-members = ["libevents", "log-viz"]
+[dependencies]
+crossterm = "0.27.0"
+ratatui = "0.26.0"
+regex = "1.10.3"
+clap = "4.4.18"
+log = "0.4.20"
+nom = "7.1.3"
+time = { version = "0.3.34", features = ["parsing", "formatting", "macros"] }
+dot = "0.1.4"
+serde = { version = "1.0.197", features = ["derive"] }
+rusqlite = "0.31.0"

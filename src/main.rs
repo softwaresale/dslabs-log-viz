@@ -6,12 +6,13 @@ use log_viz::tui::Tui;
 use std::io;
 use ratatui::backend::CrosstermBackend;
 use ratatui::Terminal;
-use dslabs_events::parse_event_log;
+use log_viz::ds_events::parse_event_log;
 
 fn main() -> AppResult<()> {
-    
-    let events = parse_event_log(File::open("/home/charlie/Programming/cs505-spring-2024/test-16-logs.txt")?)?;
-    
+
+    println!("Parsing events...");
+    let events = parse_event_log(File::open("/home/charlie/Programming/cs505-spring-2024/test-17-logs.txt")?)?;
+
     // Create an application.
     let mut app = App::new(events);
 
