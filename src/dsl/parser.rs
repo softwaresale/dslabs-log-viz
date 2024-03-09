@@ -70,7 +70,7 @@ fn parse_eq_op(input: &str) -> IResult<&str, Operator> {
     let params = separated_pair(parse_ident, ws(char(',')), parse_eq_value);
     let (remaining, (prop_name, value)) = delimited(char('('), params, char(')'))(remaining)?;
 
-    Ok((remaining, Operator::Eq { prop_name, comparison: value }))
+    Ok((remaining, Operator::Eq { prop_name: prop_name.to_string(), comparison: value.to_string() }))
 }
 
 fn parse_eq_value(input: &str) -> IResult<&str, &str> {
@@ -91,13 +91,13 @@ fn parse_has_op(input: &str) -> IResult<&str, Operator> {
         delimited(char('('), parse_ident, char(')'))
     )(input)?;
 
-    Ok((remaining, Operator::Has(ident)))
+    Ok((remaining, Operator::Has(ident.to_string())))
 }
 
 fn parse_event_name_filter(input: &str) -> IResult<&str, EventNameFilter> {
     alt((
         map(ws(tag("any")), |_| EventNameFilter::Any),
-        map(ws(parse_ident), |name| EventNameFilter::Named(name))
+        map(ws(parse_ident), |name| EventNameFilter::Named(name.to_string()))
         ))(input)
 }
 

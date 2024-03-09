@@ -1,17 +1,25 @@
 use std::cmp::min;
+use std::collections::HashSet;
 use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
-use ratatui::prelude::{Modifier, StatefulWidget, Style};
-use ratatui::widgets::{List, ListItem, ListState};
+use ratatui::prelude::Color;
+use ratatui::style::{Modifier, Style, Stylize};
+use ratatui::widgets::{Block, List, ListItem, ListState, StatefulWidget, Widget};
 use crate::ds_events::event::Event;
 
 pub struct EventList<'events> {
     events: &'events [Event],
+    selected: bool,
+    matching_events: &'events HashSet<usize>,
 }
 
 impl<'events> EventList<'events> {
-    pub fn new(events: &'events [Event]) -> Self {
-        Self { events }
+    pub fn new(events: &'events [Event], matching_events: &'events HashSet<usize>, selected: bool) -> Self {
+        Self {
+            events,
+            selected,
+            matching_events
+        }
     }
 }
 
@@ -139,27 +147,51 @@ impl<'events> StatefulWidget for EventList<'events> {
     type State = EventListState;
 
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
+        
+        let block = Block::bordered()
+            .title("Events")
+            .border_style(if self.selected {
+                Style::default().fg(Color::Blue)
+            } else {
+                Style::default()
+            });
+        
+        let block_area = block.inner(area);
+        
+        let window_height = block_area.height as usize;
+        
         // re-calculate each time based on how many lines we can show
-        state.calculate_pages(area.height as usize);
+        state.calculate_pages(window_height);
 
         // figure out which chunk to display
         let events_iter = self.events
-            .chunks(area.height as usize)
+            .chunks(window_height)
             .nth(state.current_page)
             .into_iter()
             .flat_map(|event| {
                 event.into_iter()
-                    .map(event_to_list_item)
+                    .map(|event| event_to_list_item(event, self.matching_events))
             });
-
-        List::new(events_iter)
-            .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
-            .highlight_symbol(">>")
-            .repeat_highlight_symbol(true)
-            .render(area, buf, &mut state.page_state);
+        
+        block.render(area, buf);
+        
+        StatefulWidget::render(
+            List::new(events_iter)
+                .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
+                .highlight_symbol(">>")
+                .repeat_highlight_symbol(true),
+            block_area,
+            buf,
+            &mut state.page_state
+        );
     }
 }
 
-fn event_to_list_item(event: &Event) -> ListItem {
-    ListItem::new(format!("{} {}: {}", event.id(), event.originator(), event.event_obj()))
+fn event_to_list_item<'ev>(event: &'ev Event, matching_events: &'ev HashSet<usize>) -> ListItem<'ev> {
+    let mut item = ListItem::new(format!("{} {}: {}", event.id(), event.originator(), event.event_obj()));
+    if matching_events.contains(&event.id()) {
+        item = item.style(Style::default().fg(Color::Yellow).underlined());
+    }
+    
+    item
 }

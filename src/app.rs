@@ -1,6 +1,8 @@
+mod filter_state;
 
 use std::error;
-use ratatui::widgets::ListState;
+use tui_textarea::TextArea;
+use crate::app::filter_state::FilterState;
 use crate::ds_events::event::Event;
 use crate::ui::event_list::EventListState;
 
@@ -10,7 +12,7 @@ pub type AppResult<T> = std::result::Result<T, Box<dyn error::Error>>;
 #[derive(Debug)]
 pub enum FocusedWindow {
     EventList,
-    FilterList,
+    QueryEditor,
 }
 
 impl FocusedWindow {
@@ -23,7 +25,7 @@ impl FocusedWindow {
 
     pub fn is_filter_list(&self) -> bool {
         match self {
-            FocusedWindow::FilterList => true,
+            FocusedWindow::QueryEditor => true,
             _ => false,
         }
     }
@@ -31,7 +33,7 @@ impl FocusedWindow {
 
 /// Application.
 #[derive(Debug)]
-pub struct App {
+pub struct App<'a> {
     /// Is the application running?
     pub running: bool,
     /// the current portion of the screen we have focused
@@ -40,20 +42,26 @@ pub struct App {
     pub events: Vec<Event>,
     /// list state used to control the main event list display
     pub event_list_state: EventListState,
+    /// our query text editor + state
+    pub query_text_area: TextArea<'a>,
+    /// used for filtering the events
+    pub filter_state: FilterState,
 }
 
-impl Default for App {
+impl<'a> Default for App<'a> {
     fn default() -> Self {
         Self {
             running: true,
             focused_window: FocusedWindow::EventList,
             events: Default::default(),
             event_list_state: Default::default(),
+            query_text_area: Default::default(),
+            filter_state: Default::default(),
         }
     }
 }
 
-impl App {
+impl<'a> App<'a> {
     /// Constructs a new instance of [`App`].
     pub fn new(events: Vec<Event>) -> Self {
         
@@ -78,13 +86,5 @@ impl App {
     /// Set running to false to quit the application.
     pub fn quit(&mut self) {
         self.running = false;
-    }
-
-    pub fn next_event(&mut self) {
-        self.event_list_state.next_event();
-    }
-
-    pub fn prev_event(&mut self) {
-        self.event_list_state.prev_event();
     }
 }

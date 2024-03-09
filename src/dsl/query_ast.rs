@@ -1,44 +1,50 @@
 
 /// top level query object
-pub enum EventQuery<'query> {
+#[derive(Debug)]
+pub enum EventQuery {
     /// find a query or queries
     Find {
         /// 1 or more event queries to apply in order
-        queries: Vec<FindEventNode<'query>>
-    }
+        queries: Vec<FindEventNode>
+    },
+    // TODO
+    // EXISTS - is there a single event that matches the params
+    // COUNT - just display how many events there are that match this
 }
 
 /// used to filter events
-pub enum EventNameFilter<'query> {
+#[derive(Debug)]
+pub enum EventNameFilter {
     /// any filter
     Any,
     /// filter just be of type name
-    Named(&'query str),
+    Named(String),
 }
 
 /// finds a
-pub struct FindEventNode<'query> {
+#[derive(Debug)]
+pub struct FindEventNode {
     /// events to look for
-    pub(crate) event_type: EventNameFilter<'query>,
+    pub(crate) event_type: EventNameFilter,
     /// predicates to apply to each event
-    pub(crate) operator: Operator<'query>,
+    pub(crate) operator: Operator,
 }
 
 /// different operators we can perform on queries
 #[derive(Debug)]
-pub enum Operator<'query> {
+pub enum Operator {
     /// determines if a field is equal to the given value
     Eq {
-        prop_name: &'query str,
-        comparison: &'query str,
+        prop_name: String,
+        comparison: String,
     },
     /// determines if an event has this property
-    Has(&'query str),
+    Has(String),
 
     /// negates an operator
-    Not(Box<Operator<'query>>),
+    Not(Box<Operator>),
     /// conjunction of operators
-    And(Vec<Operator<'query>>),
+    And(Vec<Operator>),
     /// disjunction of operators
-    Or(Vec<Operator<'query>>)
+    Or(Vec<Operator>)
 }

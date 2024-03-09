@@ -1,5 +1,6 @@
 
 pub mod event_list;
+mod query_window;
 
 use ratatui::{
     layout::Alignment,
@@ -11,6 +12,7 @@ use ratatui::layout::{Constraint, Layout};
 
 use crate::app::App;
 use crate::ui::event_list::EventList;
+use crate::ui::query_window::QueryWindow;
 
 /// Renders the user interface widgets.
 pub fn render(app: &mut App, frame: &mut Frame) {
@@ -37,7 +39,7 @@ pub fn render(app: &mut App, frame: &mut Frame) {
         Constraint::Length(6),
         Constraint::Min(0)
     ])
-        .spacing(2)
+        .spacing(1)
         .split(frame.size());
 
     frame.render_widget(
@@ -45,6 +47,17 @@ pub fn render(app: &mut App, frame: &mut Frame) {
         layout[0],
     );
     
-    let event_list = EventList::new(&app.events);
-    frame.render_stateful_widget(event_list, layout[1], &mut app.event_list_state);
+    let main_area_layout = Layout::horizontal([
+        Constraint::Ratio(3, 4),
+        Constraint::Ratio(1, 4)
+    ])
+        .spacing(1)
+        .split(layout[1]);
+    
+    // render the event list
+    let event_list = EventList::new(&app.events, app.filter_state.matching_events(), app.focused_window.is_event_list());
+    frame.render_stateful_widget(event_list, main_area_layout[0], &mut app.event_list_state);
+    
+    // render the query window
+    frame.render_stateful_widget(QueryWindow::new(app.focused_window.is_filter_list()), main_area_layout[1], &mut app.query_text_area);
 }
