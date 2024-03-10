@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 use ratatui::buffer::Buffer;
-use ratatui::layout::Rect;
+use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::prelude::StatefulWidget;
 use ratatui::style::{Color, Style};
 use ratatui::widgets::{Block, Widget};

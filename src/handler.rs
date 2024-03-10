@@ -77,14 +77,25 @@ fn query_window_handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResu
                 let lines_buffer = app.query_text_area.lines().join("\n");
                 match parse_event_query(&lines_buffer) {
                     Ok((_, event)) => {
+                        app.message_state.push("Successfully updated query");
                         app.filter_state.push_new_filter(event, &app.events);
                     }
                     Err(err) => {
-                        panic!("error while parsing query: {}", err);
+                        let msg = format!("error while parsing query: {}", err);
+                        app.message_state.push(msg);
                     }
                 }
                 return Ok(());
             },
+            _ => {}
+        }
+    }
+    
+    if key_event.modifiers == KeyModifiers::CONTROL {
+        match key_event.code {
+            KeyCode::Backspace => {
+                // TODO delete everything
+            }
             _ => {}
         }
     }

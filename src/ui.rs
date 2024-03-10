@@ -9,6 +9,7 @@ use ratatui::{
     Frame,
 };
 use ratatui::layout::{Constraint, Layout};
+use ratatui::text::Text;
 
 use crate::app::App;
 use crate::ui::event_list::EventList;
@@ -57,7 +58,22 @@ pub fn render(app: &mut App, frame: &mut Frame) {
     // render the event list
     let event_list = EventList::new(&app.events, app.filter_state.matching_events(), app.focused_window.is_event_list());
     frame.render_stateful_widget(event_list, main_area_layout[0], &mut app.event_list_state);
+
+    let right_bar_layout = Layout::vertical([
+        Constraint::Ratio(2, 3),
+        Constraint::Ratio(1, 3)
+    ])
+        .spacing(1)
+        .split(main_area_layout[1]);
     
-    // render the query window
-    frame.render_stateful_widget(QueryWindow::new(app.focused_window.is_filter_list()), main_area_layout[1], &mut app.query_text_area);
+    // render the query window and message area
+    frame.render_stateful_widget(QueryWindow::new(app.focused_window.is_filter_list()), right_bar_layout[0], &mut app.query_text_area);
+
+    let message_block = Block::bordered()
+        .title("Messages");
+
+    let message_area = message_block.inner(right_bar_layout[1]);
+    let para = Paragraph::new(app.message_state.messages().join("\n"));
+    frame.render_widget(para, message_area);
+    frame.render_widget(message_block, right_bar_layout[1]);
 }

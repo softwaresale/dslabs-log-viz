@@ -1,8 +1,10 @@
 mod filter_state;
+mod messages_state;
 
 use std::error;
 use tui_textarea::TextArea;
 use crate::app::filter_state::FilterState;
+use crate::app::messages_state::MessagesState;
 use crate::ds_events::event::Event;
 use crate::ui::event_list::EventListState;
 
@@ -46,6 +48,7 @@ pub struct App<'a> {
     pub query_text_area: TextArea<'a>,
     /// used for filtering the events
     pub filter_state: FilterState,
+    pub message_state: MessagesState,
 }
 
 impl<'a> Default for App<'a> {
@@ -57,6 +60,7 @@ impl<'a> Default for App<'a> {
             event_list_state: Default::default(),
             query_text_area: Default::default(),
             filter_state: Default::default(),
+            message_state: Default::default(),
         }
     }
 }
