@@ -48,7 +48,10 @@ pub struct App<'a> {
     pub query_text_area: TextArea<'a>,
     /// used for filtering the events
     pub filter_state: FilterState,
+    /// used for controlling the messages view
     pub message_state: MessagesState,
+    /// the index of the currently selected event, or none if no event is selected
+    pub selected_event: Option<usize>,
 }
 
 impl<'a> Default for App<'a> {
@@ -61,6 +64,7 @@ impl<'a> Default for App<'a> {
             query_text_area: Default::default(),
             filter_state: Default::default(),
             message_state: Default::default(),
+            selected_event: None,
         }
     }
 }
@@ -84,6 +88,14 @@ impl<'a> App<'a> {
         }
     }
 
+    pub fn select_event(&mut self, index: usize) {
+        self.selected_event = Some(index);
+    }
+    
+    pub fn clear_selected_event(&mut self) {
+        self.selected_event = None
+    }
+    
     /// Handles the tick event of the terminal.
     pub fn tick(&self) {}
 

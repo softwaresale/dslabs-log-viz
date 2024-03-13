@@ -1,6 +1,7 @@
 
 pub mod event_list;
 mod query_window;
+mod event_details;
 
 use ratatui::{
     layout::Alignment,
@@ -12,6 +13,7 @@ use ratatui::layout::{Constraint, Layout};
 use ratatui::widgets::Wrap;
 
 use crate::app::App;
+use crate::ui::event_details::EventDetailsWidget;
 use crate::ui::event_list::EventList;
 use crate::ui::query_window::QueryWindow;
 
@@ -55,9 +57,27 @@ pub fn render(app: &mut App, frame: &mut Frame) {
         .spacing(1)
         .split(layout[1]);
     
+    // create the optional details view
+    let event_area_constraints = if app.selected_event.is_some() {
+        vec![Constraint::Ratio(1, 2); 2]
+    } else {
+        vec![Constraint::Min(0)]
+    };
+    
+    let event_area_layout = Layout::vertical(event_area_constraints)
+        .spacing(1)
+        .split(main_area_layout[0]);
+    
     // render the event list
     let event_list = EventList::new(&app.events, app.filter_state.matching_events(), app.focused_window.is_event_list());
-    frame.render_stateful_widget(event_list, main_area_layout[0], &mut app.event_list_state);
+    frame.render_stateful_widget(event_list, event_area_layout[0], &mut app.event_list_state);
+    
+    // optionally show an event details for the given one
+    if let Some(selected_idx) = app.selected_event {
+        let selected_ev = app.events.get(selected_idx).unwrap();
+        let details_widget = EventDetailsWidget::new(selected_ev);
+        frame.render_widget(details_widget, event_area_layout[1]);
+    }
 
     let right_bar_layout = Layout::vertical([
         Constraint::Ratio(2, 3),

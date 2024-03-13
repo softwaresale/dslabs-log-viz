@@ -63,6 +63,12 @@ fn events_list_handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResul
         KeyCode::End => {
             app.event_list_state.go_end();
         }
+        KeyCode::Enter => {
+            app.select_event(app.event_list_state.selected_event);
+        }
+        KeyCode::Char('c') => {
+            app.clear_selected_event()
+        }
         // Other handlers you could add here.
         _ => {}
     }

@@ -1,4 +1,5 @@
 pub mod parser;
+pub mod pretty_print;
 
 use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter, Write};
