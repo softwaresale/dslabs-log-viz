@@ -1,11 +1,14 @@
 mod filter_state;
 mod messages_state;
+mod navigation_state;
 
 use std::error;
 use tui_textarea::TextArea;
 use crate::app::filter_state::FilterState;
 use crate::app::messages_state::MessagesState;
+use crate::app::navigation_state::NavigationState;
 use crate::ds_events::event::Event;
+use crate::dsl::query_ast::EventQuery;
 use crate::ui::event_list::EventListState;
 
 /// Application result type.
@@ -52,6 +55,8 @@ pub struct App<'a> {
     pub message_state: MessagesState,
     /// the index of the currently selected event, or none if no event is selected
     pub selected_event: Option<usize>,
+    /// used for navigating selected events
+    pub navigation_state: NavigationState,
 }
 
 impl<'a> Default for App<'a> {
@@ -65,6 +70,7 @@ impl<'a> Default for App<'a> {
             filter_state: Default::default(),
             message_state: Default::default(),
             selected_event: None,
+            navigation_state: Default::default(),
         }
     }
 }
@@ -91,11 +97,35 @@ impl<'a> App<'a> {
     pub fn select_event(&mut self, index: usize) {
         self.selected_event = Some(index);
     }
-    
+
     pub fn clear_selected_event(&mut self) {
         self.selected_event = None
     }
+
+    pub fn push_new_filter_state(&mut self, event: EventQuery) {
+        self.message_state.push("Successfully updated query");
+        self.filter_state.push_new_filter(event, &self.events);
+        self.navigation_state.load_nav_order(self.filter_state.nav_order());
+    }
     
+    pub fn nav_next(&mut self) {
+        if let Some(next_idx) = self.navigation_state.next_event() {
+            self.event_list_state.focus_event(next_idx);
+            self.selected_event = Some(next_idx);
+        } else {
+            self.message_state.push("No more results found")
+        }
+    }
+    
+    pub fn nav_prev(&mut self) {
+        if let Some(prev_idx) = self.navigation_state.prev_event() {
+            self.event_list_state.focus_event(prev_idx);
+            self.selected_event = Some(prev_idx);
+        } else {
+            self.message_state.push("No more results found")
+        }
+    }
+
     /// Handles the tick event of the terminal.
     pub fn tick(&self) {}
 

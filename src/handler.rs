@@ -69,6 +69,22 @@ fn events_list_handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResul
         KeyCode::Char('c') => {
             app.clear_selected_event()
         }
+        KeyCode::Char('n') => {
+            if app.filter_state.has_active_filter() {
+                // get the next one and focus it
+                app.nav_next();
+            } else {
+                app.message_state.push("No query is active. Start a query to begin navigating")
+            }
+        }
+        KeyCode::Char('N') => {
+            if app.filter_state.has_active_filter() {
+                // get the next one and focus it
+                app.nav_prev();
+            } else {
+                app.message_state.push("No query is active. Start a query to begin navigating")
+            }
+        }
         // Other handlers you could add here.
         _ => {}
     }
@@ -83,8 +99,7 @@ fn query_window_handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResu
                 let lines_buffer = app.query_text_area.lines().join("\n");
                 match parse_event_query(&lines_buffer) {
                     Ok((_, event)) => {
-                        app.message_state.push("Successfully updated query");
-                        app.filter_state.push_new_filter(event, &app.events);
+                        app.push_new_filter_state(event);
                     }
                     Err(err) => {
                         let msg = format!("error while parsing query: {}", err);

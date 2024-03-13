@@ -1,5 +1,5 @@
 use std::cmp::min;
-use std::collections::HashSet;
+use std::collections::{BTreeSet};
 use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
 use ratatui::prelude::Color;
@@ -10,11 +10,11 @@ use crate::ds_events::event::Event;
 pub struct EventList<'events> {
     events: &'events [Event],
     selected: bool,
-    matching_events: &'events HashSet<usize>,
+    matching_events: &'events BTreeSet<usize>,
 }
 
 impl<'events> EventList<'events> {
-    pub fn new(events: &'events [Event], matching_events: &'events HashSet<usize>, selected: bool) -> Self {
+    pub fn new(events: &'events [Event], matching_events: &'events BTreeSet<usize>, selected: bool) -> Self {
         Self {
             events,
             selected,
@@ -141,6 +141,32 @@ impl EventListState {
             *self.page_state.selected_mut() = Some(height - 1);
         }
     }
+    
+    pub fn focus_event(&mut self, event_idx: usize) {
+        // too far
+        if event_idx >= self.event_count {
+            return;
+        }
+
+        // figure out which page we need to focus
+        let Some((containing_page, page_offset)) = self.compute_containing_page(event_idx) else {
+            panic!()
+        };
+        
+        // set the selected page and event
+        self.current_page = containing_page;
+        self.selected_event = event_idx;
+        *self.page_state.selected_mut() = Some(page_offset);
+    }
+    
+    fn compute_containing_page(&self, event_idx: usize) -> Option<(usize, usize)> {
+        let containing_page = event_idx / self.last_height;
+        assert!(containing_page < self.page_count);
+        
+        let page_offset = event_idx - (containing_page * self.last_height);
+        
+        Some((containing_page, page_offset))
+    }
 }
 
 impl<'events> StatefulWidget for EventList<'events> {
@@ -187,7 +213,7 @@ impl<'events> StatefulWidget for EventList<'events> {
     }
 }
 
-fn event_to_list_item<'ev>(event: &'ev Event, matching_events: &'ev HashSet<usize>) -> ListItem<'ev> {
+fn event_to_list_item<'ev>(event: &'ev Event, matching_events: &'ev BTreeSet<usize>) -> ListItem<'ev> {
     let mut item = ListItem::new(format!("{} {}: {}", event.id(), event.originator(), event.event_obj()));
     if matching_events.contains(&event.id()) {
         item = item.style(Style::default().fg(Color::Yellow).underlined());
