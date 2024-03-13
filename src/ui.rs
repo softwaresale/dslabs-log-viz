@@ -25,8 +25,10 @@ pub fn render(app: &mut App, frame: &mut Frame) {
     // - https://github.com/ratatui-org/ratatui/tree/master/examples
 
     let starting_paragraph = Paragraph::new(format!("DSLabs Log Insight.\n\
-         Press `Esc`, `Ctrl-C` or `q` to stop running.\n\
-         Press left and right to increment and decrement the counter respectively.\n\
+         Press `Esc` or `Ctrl-C` to stop running.\n\
+         Press Ctrl-Left or Ctrl-Right to focus the event list or query window respectively.\n\
+         Next/prev event: up/down. Next/prev page: page-up/page-down, Next/prev result: n/Shift-n\n\
+         After entering a query, press Alt-Enter to run it.\n\
          Current selected event: {}", app.event_list_state.selected_event)
     )
         .block(
@@ -39,7 +41,7 @@ pub fn render(app: &mut App, frame: &mut Frame) {
         .centered();
 
     let layout = Layout::vertical([
-        Constraint::Length(6),
+        Constraint::Length(8),
         Constraint::Min(0)
     ])
         .spacing(1)

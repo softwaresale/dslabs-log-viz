@@ -4,14 +4,25 @@ use log_viz::event::{Event, EventHandler};
 use log_viz::handler::handle_key_events;
 use log_viz::tui::Tui;
 use std::io;
+use std::path::PathBuf;
+use clap::Parser;
 use ratatui::backend::CrosstermBackend;
 use ratatui::Terminal;
 use log_viz::ds_events::parse_event_log;
 
+#[derive(Debug, Parser)]
+#[command(author, version, about)]
+struct Args {
+    /// the file to visualize
+    filename: PathBuf
+}
+
 fn main() -> AppResult<()> {
 
-    println!("Parsing events...");
-    let events = parse_event_log(File::open("/home/charlie/Programming/cs505-spring-2024/test-17-logs.txt")?)?;
+    let args = Args::parse();
+    let log_file = File::open(args.filename)?;
+    println!("Parsing logs...");
+    let events = parse_event_log(log_file)?;
 
     // Create an application.
     let mut app = App::new(events);
