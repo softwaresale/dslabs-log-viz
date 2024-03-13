@@ -35,7 +35,9 @@ fn parse_operator(input: &str) -> IResult<&str, Operator> {
         parse_not_op,
         parse_and_ops,
         parse_or_ops,
-        parse_server_op
+        parse_server_op,
+        parse_before_op,
+        parse_after_op,
         ))(input)
 }
 
@@ -79,6 +81,18 @@ fn parse_server_op(input: &str) -> IResult<&str, Operator> {
     let (remaining, server_id) = delimited(char('('), parse_eq_value, char(')'))(remaining)?;
 
     Ok((remaining, Operator::Server(server_id.to_string())))
+}
+
+fn parse_before_op(input: &str) -> IResult<&str, Operator> {
+    let (remaining, _) = tag("before")(input)?;
+    let (remaining, idx) = delimited(char('('), nom::character::complete::u64, char(')'))(remaining)?;
+    Ok((remaining, Operator::Before(idx as usize)))
+}
+
+fn parse_after_op(input: &str) -> IResult<&str, Operator> {
+    let (remaining, _) = tag("after")(input)?;
+    let (remaining, idx) = delimited(char('('), nom::character::complete::u64, char(')'))(remaining)?;
+    Ok((remaining, Operator::After(idx as usize)))
 }
 
 fn parse_eq_value(input: &str) -> IResult<&str, &str> {

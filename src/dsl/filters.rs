@@ -32,11 +32,18 @@ impl EventFilter for Operator {
             Operator::Has(prop) => {
                 Ok(prop.lookup_value(event).is_ok())
             }
-
+            
             Operator::Server(server_id) => {
                 let server_name = format!("server{}", server_id);
                 Ok(event.originator() == &server_name)
             }
+            Operator::After(after) => {
+                Ok(event.id() >= *after)
+            }
+            Operator::Before(before) => {
+                Ok(event.id() < *before)
+            }
+            
             
             Operator::Not(op) => {
                 op.test(event)

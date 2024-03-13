@@ -86,6 +86,10 @@ pub enum Operator {
     Has(PropPath),
     /// determines if an event came from a server
     Server(String),
+    /// find all events that are after the given event id
+    After(usize),
+    /// find all events before the given event id
+    Before(usize),
 
     /// negates an operator
     Not(Box<Operator>),
