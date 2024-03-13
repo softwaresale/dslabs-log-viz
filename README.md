@@ -1,14 +1,26 @@
-## Simple template
 
-The simple template will create the following project structure:
+# DSLabs Log Visualization Tool
+For students using DSLabs in their class projects, reading through logs while debugging can be a challenge. It is
+valuable to log more events in your system, but as a tradeoff, the more logs you produce the harder it is to actually
+gain any insight from those logs. Enter this tool! It is designed to making reading logs easier.
 
-```text
-src/
-├── app.rs     -> holds the state and application logic
-├── event.rs   -> handles the terminal events (key press, mouse click, resize, etc.)
-├── handler.rs -> handles the key press events and updates the application
-├── lib.rs     -> module definitions
-├── main.rs    -> entry-point
-├── tui.rs     -> initializes/exits the terminal interface
-└── ui.rs      -> renders the widgets / UI
+## How it works
+This tools works by taking an input file full of structured logs, parsing it, and then displaying it in a TUI. With this
+tool, you can:
+- Easily page and navigate the list of events
+- Search for events with a simple declarative query language
+
+## Getting Starting
+### Prerequisites
+To use this tool, you first have to integrate a compatible logger into your DSLabs project. 
+TODO
+
+### Installing
+TODO
+
+### Usage
+
+```shell
+$ ./run-tests <whatever params> 2> <path to logs file>
+$ log-viz <path to logs file>
 ```
