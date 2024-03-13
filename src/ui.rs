@@ -9,7 +9,7 @@ use ratatui::{
     Frame,
 };
 use ratatui::layout::{Constraint, Layout};
-use ratatui::text::Text;
+use ratatui::widgets::Wrap;
 
 use crate::app::App;
 use crate::ui::event_list::EventList;
@@ -73,7 +73,8 @@ pub fn render(app: &mut App, frame: &mut Frame) {
         .title("Messages");
 
     let message_area = message_block.inner(right_bar_layout[1]);
-    let para = Paragraph::new(app.message_state.messages().join("\n"));
+    let para = Paragraph::new(app.message_state.messages().join("\n"))
+        .wrap(Wrap::default());
     frame.render_widget(para, message_area);
     frame.render_widget(message_block, right_bar_layout[1]);
 }

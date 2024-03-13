@@ -6,7 +6,7 @@ use nom::error::ParseError;
 use nom::{IResult, Parser};
 use nom::multi::{many0, many0_count, separated_list1};
 use nom::sequence::{delimited, pair, separated_pair};
-use crate::dsl::query_ast::{EventNameFilter, EventQuery, FindEventNode, Operator};
+use crate::dsl::query_ast::{EventNameFilter, EventQuery, FindEventNode, Operator, PropPath};
 
 pub fn parse_event_query(input: &str) -> IResult<&str, EventQuery> {
     map(
@@ -29,13 +29,14 @@ fn parse_find_event_query(input: &str) -> IResult<&str, FindEventNode> {
 }
 
 fn parse_operator(input: &str) -> IResult<&str, Operator> {
-    (alt((
+    alt((
         parse_eq_op,
         parse_has_op,
         parse_not_op,
         parse_and_ops,
         parse_or_ops,
-        )))(input)
+        parse_server_op
+        ))(input)
 }
 
 fn parse_or_ops(input: &str) -> IResult<&str, Operator> {
@@ -67,10 +68,17 @@ fn parse_not_op(input: &str) -> IResult<&str, Operator> {
 fn parse_eq_op(input: &str) -> IResult<&str, Operator> {
     // TODO this needs to accept numbers vs strings etc.
     let (remaining, _) = tag("eq")(input)?;
-    let params = separated_pair(parse_ident, ws(char(',')), parse_eq_value);
+    let params = separated_pair(parse_path, ws(char(',')), parse_eq_value);
     let (remaining, (prop_name, value)) = delimited(char('('), params, char(')'))(remaining)?;
 
-    Ok((remaining, Operator::Eq { prop_name: prop_name.to_string(), comparison: value.to_string() }))
+    Ok((remaining, Operator::Eq { prop_name, comparison: value.to_string() }))
+}
+
+fn parse_server_op(input: &str) -> IResult<&str, Operator> {
+    let (remaining, _) = tag("server")(input)?;
+    let (remaining, server_id) = delimited(char('('), parse_eq_value, char(')'))(remaining)?;
+
+    Ok((remaining, Operator::Server(server_id.to_string())))
 }
 
 fn parse_eq_value(input: &str) -> IResult<&str, &str> {
@@ -88,10 +96,10 @@ fn parse_has_op(input: &str) -> IResult<&str, Operator> {
 
     let (remaining, (_, ident)) = pair(
         ws(tag("has")),
-        delimited(char('('), parse_ident, char(')'))
+        delimited(char('('), parse_path, char(')'))
     )(input)?;
 
-    Ok((remaining, Operator::Has(ident.to_string())))
+    Ok((remaining, Operator::Has(ident)))
 }
 
 fn parse_event_name_filter(input: &str) -> IResult<&str, EventNameFilter> {
@@ -106,6 +114,22 @@ fn parse_ident(input: &str) -> IResult<&str, &str> {
         alt((alpha1, tag("_"))),
         many0_count(alt((alphanumeric1, tag("_"), tag("."))))
     ))(input)
+}
+
+fn parse_path_segment(input: &str) -> IResult<&str, &str> {
+    recognize(pair(
+        alt((alpha1, tag("_"))),
+        many0_count(alt((alphanumeric1, tag("_"))))
+    ))(input)
+}
+
+fn parse_path(input: &str) -> IResult<&str, PropPath> {
+    let (remaining, segments) = separated_list1(char('.'), parse_path_segment)(input)?;
+    let segments = segments.into_iter()
+        .map(|seg| seg.to_string())
+        .collect::<Vec<_>>();
+    
+    Ok((remaining, PropPath { segments }))
 }
 
 /// A combinator that takes a parser `inner` and produces a parser that also consumes both leading and
@@ -123,7 +147,7 @@ fn ws<'a, F, O, E: ParseError<&'a str>>(inner: F) -> impl Parser<&'a str, O, E>
 
 #[cfg(test)]
 mod tests {
-    use crate::dsl::parser::{parse_event_query};
+    use crate::dsl::parser::{parse_eq_op, parse_event_query};
     use crate::dsl::query_ast::{EventNameFilter, EventQuery, Operator};
 
     #[test]
@@ -136,7 +160,7 @@ mod tests {
         let first = queries.get(0).expect("should have a first element");
         let EventNameFilter::Any = first.event_type else { panic!("Expected query filter to be any") };
         match &first.operator {
-            Operator::Has(prop) => assert_eq!(*prop, "slotNum"),
+            Operator::Has(prop) => assert_eq!(prop.segments[0], "slotNum"),
             op => panic!("Unexpected operator type: {:?}", op),
         }
     }
@@ -160,5 +184,18 @@ mod tests {
         ";
 
         let (_, _query) = parse_event_query(ev_text).expect("Parsing should succeed");
+    }
+    
+    #[test]
+    fn parse_path() {
+        let text = "eq(leader.area, 10)";
+        let (_, path) = parse_eq_op(text).expect("Should parse successfully");
+        let Operator::Eq { prop_name, comparison } = path else {
+            panic!("Expected eq, but got something else");
+        };
+        
+        assert_eq!(prop_name.segments.len(), 2);
+        assert_eq!(prop_name.segments.get(0).unwrap(), "leader");
+        assert_eq!(prop_name.segments.get(1).unwrap(), "area");
     }
 }

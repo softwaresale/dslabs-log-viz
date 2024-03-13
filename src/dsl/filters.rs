@@ -23,17 +23,21 @@ impl EventFilter for Operator {
     fn test(&self, event: &Event) -> Result<bool, EventFilterError> {
         match self {
             Operator::Eq { prop_name, comparison } => {
-                event.event_obj().props()
-                    .get(prop_name)
-                    .ok_or(EventFilterError::KeyNotFound)
+                prop_name.lookup_value(event)
                     .and_then(|value| {
                         value.try_eq_raw_str(comparison)
                             .ok_or(EventFilterError::MismatchTypes)
                     })
             }
             Operator::Has(prop) => {
-                Ok(event.event_obj().props().contains_key(prop))
+                Ok(prop.lookup_value(event).is_ok())
             }
+
+            Operator::Server(server_id) => {
+                let server_name = format!("server{}", server_id);
+                Ok(event.originator() == &server_name)
+            }
+            
             Operator::Not(op) => {
                 op.test(event)
                     .map(|val| !val)
