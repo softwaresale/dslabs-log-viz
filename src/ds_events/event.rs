@@ -92,7 +92,7 @@ impl<'a> EventParser<'a> {
         let format = format_description!("[year]-[month padding:zero repr:numerical]-[day padding:zero] [hour]:[minute padding:zero]:[second padding:zero]");
         let owned = format.to_owned();
         Self {
-            line_regex: Regex::new(r"^\[(\w+)\s*] \[([^]]+)] \[[^]]+] (\w+): (.+)$").expect("Regex compilation should not fail"),
+            line_regex: Regex::new(r"^\[(\w+)\s*] \[([^]]+)] \[[^]]+] ([\w\-]+): (.+)$").expect("Regex compilation should not fail"),
             timestamp_format: owned,
             running_id: Cell::new(0),
         }
